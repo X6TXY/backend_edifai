@@ -1,16 +1,14 @@
-from app.config import database
-
-from .repository.repository import WritingTask2
+from .repository.repository import Wtask2Repository
 
 
 class Service:
     def __init__(
         self,
-        repository: WritingTask2,
+        repository: Wtask2Repository,
     ):
         self.repository = repository
 
 
 def get_service():
-    repository = WritingTask2(database)
+    repository = Wtask2Repository()
     return Service(repository)
