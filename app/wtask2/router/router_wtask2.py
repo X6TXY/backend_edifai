@@ -1,4 +1,4 @@
-import logging
+
 
 from app.auth.adapters.jwt_service import JWTData
 from app.auth.router.dependencies import parse_jwt_user_data
@@ -33,7 +33,6 @@ def get_answer(
         response = svc.repository.get_answer(request.request)
         return GetAnswerResponse(response=response)
     except Exception as e:
-        logging.error(str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",

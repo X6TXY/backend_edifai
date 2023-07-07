@@ -56,11 +56,20 @@ class Wtask2Repository:
             raise ValueError("Vector store is not loaded.")
 
         docs = self.vector_store.similarity_search(query=request, k=3)
-        llm = OpenAI(temperature=0.9)
+        llm = OpenAI(temperature=0.8)
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""ALWAYS GIVE IELTS SCORE OF ESSAY \n\n.Be very strict.Pick on everything so I can write an essay better.Provide feedback and advice for the following IELTS essay:\n\nEssay: {request}\n\nFeedback and advice: \n\nIELTS score: \n\n Feedback all parts in Essay"""
+        evaluator_prompt = f"""You are IETLS coach and you can only answer about IELTS.Be strict.Essay:{request}.\n\n
+        Feedback and IELTS Marks:Introduction: [Provide feedback and marks for the introduction]
+        \n\n Grammar band:[Provide feedback and marks for the Grammar band give sugestions and advices ]
+        \n\nLexical Resource:[Provide feedback and marks for the Lexical Resource  give sugestions and advices]\n\n 
+        Coherence and Cohesion:[Provide feedback and marks for the Coherence and Cohesion  give sugestions and advices] \n\n
+         Task response:[Provide feedback and marks for the task response  give sugestions and advices] 
+         \n\n Conclusion: [Provide feedback and marks for the conclusion] 
+         \n\nOverall Score: [Provide the overall IELTS score for the essay] 
+         \n\n Keywords :[Highlight important keywords  words used throughout the essay] 
+         \n\n Common Words:[Highlight important common words used throughout the essay and give substitutions]"""
 
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=evaluator_prompt)

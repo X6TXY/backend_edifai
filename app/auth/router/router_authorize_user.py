@@ -21,7 +21,7 @@ class RegisterUserRequest(AppModel):
 @router.post("/users/tokens", response_model=AuthorizeUserResponse)
 def authorize_user(
     input: OAuth2PasswordRequestForm = Depends(),
-    svc: Service = Depends(get_service),
+    svc: Service = Depends(get_service)
 ) -> AuthorizeUserResponse:
     # return input
     user = svc.repository.get_user_by_email(input.username)
