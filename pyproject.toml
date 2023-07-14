@@ -21,6 +21,10 @@ faiss-cpu = "^1.7.4"
 python-dotenv = "^1.0.0"
 langchain = "^0.0.225"
 openai = "^0.27.8"
+transformers = "^4.30.2"
+replicate = "^0.8.4"
+elevenlabs = "^0.2.18"
+pybase64 = "^1.2.3"
 
 
 [tool.poetry.group.dev.dependencies]

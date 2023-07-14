@@ -4,12 +4,11 @@ from app.utils import AppModel
 from fastapi import Depends, HTTPException, Response, status
 from pydantic import Field, ValidationError
 
-from ..repository.repository import Wtask2Repository
+from ..repository.repository import HelpBotRepository
 from ..service import Service, get_service
 from . import router
-from fastapi import Depends
 
-repository = Wtask2Repository()
+repository = HelpBotRepository()
 
 
 class GetAnswerRequest(AppModel):

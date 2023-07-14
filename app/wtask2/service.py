@@ -1,3 +1,5 @@
+from app.config import database
+
 from .repository.repository import Wtask2Repository
 
 

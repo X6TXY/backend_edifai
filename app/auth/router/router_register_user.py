@@ -15,15 +15,15 @@ class RegisterUserResponse(AppModel):
 
 
 @router.post(
-    "/users", status_code=status.HTTP_201_CREATED, response_model=RegisterUserResponse
+    "/users", status_code=status.HTTP_200_OK, response_model=RegisterUserResponse
 )
 def register_user(
-    input: RegisterUserRequest,
+    input: RegisterUserRequest = Depends(),
     svc: Service = Depends(get_service),
 ) -> dict[str, str]:
     if svc.repository.get_user_by_email(input.email):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Email is already taken.",
         )
 
