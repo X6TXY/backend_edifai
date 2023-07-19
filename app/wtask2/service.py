@@ -12,5 +12,5 @@ class Service:
 
 
 def get_service():
-    repository = Wtask2Repository()
+    repository = Wtask2Repository(database)
     return Service(repository)

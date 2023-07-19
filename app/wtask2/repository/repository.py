@@ -1,5 +1,6 @@
 import os
 import pickle
+from collections import Counter
 from datetime import datetime
 from typing import Optional
 
@@ -26,6 +27,7 @@ class Wtask2Repository:
     def __init__(self, database: Database):
         self.vector_store = None
         self.database = database
+        self.user = None
 
     def load_vector_store(self):
         pdf_path = "static/Document.pdf"
@@ -54,6 +56,35 @@ class Wtask2Repository:
         else:
             raise FileNotFoundError("PDF file not found.")
 
+    def get_user_by_id(self, user_id: str) -> Optional[dict]:
+        user = self.database["users"].find_one(
+            {
+                "_id": ObjectId(user_id),
+            }
+        )
+        self.user = user
+        return self.user
+
+    def get_score(self, request: str):
+        if self.vector_store is None:
+            raise ValueError("Vector store is not loaded.")
+        docs = self.vector_store.similarity_search(query=request, k=3)
+        llm = OpenAI(temperature=0.8)
+        prompt_template = CustomPromptTemplate()
+        chain = load_qa_chain(llm=llm, chain_type="stuff")
+
+        evaluator_prompt = f"""Image you are IELTS writing task 2 examiner.Maximum score 9.0 and minimum score 0.0.Output only mark without feedback and other sentences.\nFamiliarize yourself with the marking criteria: Before you start using the IELTS writing checker, it s important to understand the criteria that the examiners use to mark your writing. This will help you understand what you need to focus on to improve your score.
+Practice writing regularly: To get the most out of the IELTS writing checker, it s important to practice writing regularly. This will help you improve your writing skills and give you more opportunities to use the checker.
+Analyze your mistakes: When the writing checker highlights your mistakes, take the time to analyze them and understand why you made them. This will help you avoid making the same mistakes in the future.
+Use the feedback to improve your writing: The IELTS writing checker provides feedback on your writing, so use it to your advantage. Take note of the areas where you need to improve and make the necessary changes to your writing.
+Work on your time management: During the IELTS exam, time management is crucial. To prepare for this, try to complete your writing tasks within the allotted time and use the writing checker to check your work quickly.
+Don t rely on the IELTS writing checker entirely: While the writing checker is a useful tool, it s important to remember that it s not perfect. Use it as a guide, but don t rely on it entirely. Always use your own judgement and common sense when it comes to your writing.Accurate mark of this essay:"""
+
+        with get_openai_callback() as cb:
+            response = chain.run(input_documents=docs, question=evaluator_prompt)
+
+        return response
+
     def get_answer(self, request: str):
         if self.vector_store is None:
             raise ValueError("Vector store is not loaded.")
@@ -63,23 +94,24 @@ class Wtask2Repository:
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""<p>You are IETLS coach and you can only answer about IELTS.Mark</p>.Be strict.Essay:{request}.\n\n
-        <p>Feedback and IELTS Marks:Introduction: [Provide feedback and marks for the introduction]</p>
-        \n\n <p>Grammar band:[Provide feedback and marks for the Grammar band give sugestions and advices ]</p>
-        \n\n<p>Lexical Resource:[Provide feedback and marks for the Lexical Resource  give sugestions and advices]</p>\n\n 
-        <p>Coherence and Cohesion:[Provide feedback and marks for the Coherence and Cohesion  give sugestions and advices]</p> \n\n
-         <p>Task response:[Provide feedback and marks for the task response  give sugestions and advices]</p>
-         \n\n<p> Conclusion: [Provide feedback and marks for the conclusion]</p> 
-         \n\n<p>Overall Score: [Provide the overall IELTS score for the essay]</p>
-         \n\n<p>Keywords :[Highlight important keywords  words used throughout the essay]</p>
-         \n\n<p>Common Words:[Highlight important common words used throughout the essay and give substitutions]</p>"""
+        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.\n\n"""
 
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=evaluator_prompt)
         payload = {
-            "request": request,
+            "user_id": self.user["_id"],
+            "date": datetime.utcnow().strftime("%Y-%m-%d"),
             "response": response,
-            "submit_at": datetime.utcnow().strftime("%Y-%m-%d"),
+            "request": request,
         }
         self.database["response"].insert_one(payload)
         return response
+
+    def get_dates(self) -> dict[str, int]:
+        response_collection = self.database["response"]
+        responses = list(response_collection.find({"user_id": self.user["_id"]}))
+        daily_submissions = Counter()
+        for response in responses:
+            date = response["date"].split("T")[0]  # Extract only the date portion
+            daily_submissions[date] += 1
+        return dict(daily_submissions)
