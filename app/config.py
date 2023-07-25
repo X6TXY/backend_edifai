@@ -6,7 +6,7 @@ from pymongo import MongoClient
 
 class Config(BaseSettings):
     CORS_ORIGINS: list[str] = ["https://edifai.vercel.app/"]
-    CORS_HEADERS: list[str] = ["*"]
+    CORS_HEADERS: list[str] = ["https://edifai.vercel.app/"]
     CORS_METHODS: list[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
     MONGOHOST: str = "localhost"
