@@ -12,6 +12,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
+from pymongo.cursor import Cursor
 from pymongo.database import Database
 from PyPDF2 import PdfReader
 
@@ -103,6 +104,9 @@ Don t rely on the IELTS writing checker entirely: While the writing checker is a
             "date": datetime.utcnow().strftime("%Y-%m-%d"),
             "response": response,
             "request": request,
+            "score": self.get_score(
+                request
+            ),  # Calculate the score and add it to the payload
         }
         self.database["response"].insert_one(payload)
         return response
@@ -115,3 +119,10 @@ Don t rely on the IELTS writing checker entirely: While the writing checker is a
             date = response["date"].split("T")[0]  # Extract only the date portion
             daily_submissions[date] += 1
         return dict(daily_submissions)
+
+    def get_responses_by_user_id(self, user_id: str) -> Cursor:
+        return (
+            self.database["response"]
+            .find({"user_id": ObjectId(user_id)})
+            .sort("_id", -1)
+        )

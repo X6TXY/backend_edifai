@@ -1,8 +1,11 @@
+from typing import List
+
 from app.auth.adapters.jwt_service import JWTData
 from app.auth.router.dependencies import parse_jwt_user_data
 from app.utils import AppModel
 from fastapi import Depends, HTTPException, Response, status
 from pydantic import Field, ValidationError
+from pymongo.cursor import Cursor
 
 from ..repository.repository import Wtask2Repository
 from ..service import Service, get_service
@@ -11,6 +14,13 @@ from . import router
 
 class GetAnswerRequest(AppModel):
     request: str
+
+
+class ResponseData(AppModel):
+    date: str
+    response: str
+    request: str
+    score: str
 
 
 class GetAnswerResponse(AppModel):
@@ -80,6 +90,31 @@ def get_score(
         response = svc.repository.get_score(request.request)
 
         return GetScoreResponse(response=response)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@router.get("/get_responses", response_model=List[ResponseData])
+def get_responses_by_user_id(
+    jwt_data: JWTData = Depends(parse_jwt_user_data),
+    svc: Service = Depends(get_service),
+) -> List[ResponseData]:
+    user = svc.repository.get_user_by_id(jwt_data.user_id)
+    try:
+        responses_cursor = svc.repository.get_responses_by_user_id(str(user["_id"]))
+        responses = [
+            ResponseData(
+                date=response["date"],
+                response=response["response"],
+                request=response["request"],
+                score=response["score"],
+            )
+            for response in responses_cursor
+        ]
+        return responses
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
