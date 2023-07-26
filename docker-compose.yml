@@ -7,6 +7,7 @@ services:
       dockerfile: ./deploy/dockerfiles/Dockerfile
     environment:
      - MONGOHOST=mongodb
+     - MONGO_URL=${MONGO_URL:-localhost:27017}
     volumes:
       - ./:/code
     ports:

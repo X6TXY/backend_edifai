@@ -1,3 +1,5 @@
+import logging
+import os
 from typing import Any
 
 from pydantic import BaseSettings
@@ -14,7 +16,7 @@ class Config(BaseSettings):
     MONGOUSER: str = "root"
     MONGOPASSWORD: str = "password"
     MONGODATABASE: str = "fastapi"
-    MONGO_URL: str = "mongodb+srv://x6txy:baha2710@cluster0.7ohnbpk.mongodb.net/"
+    MONGO_URL: str
 
 
 # environmental variables
@@ -25,12 +27,8 @@ fastapi_config: dict[str, Any] = {
     "title": "API",
 }
 
-mongo_url = "mongodb+srv://x6txy:baha2710@cluster0.7ohnbpk.mongodb.net/"
-if env.MONGO_URL:
-    mongo_url = env.MONGO_URL
-
 # MongoDB connection
-client = MongoClient(mongo_url)
+client = MongoClient(env.MONGO_URL)
 
 # MongoDB database
 database = client[env.MONGODATABASE]
