@@ -14,7 +14,7 @@ class Config(BaseSettings):
     MONGOUSER: str = "root"
     MONGOPASSWORD: str = "password"
     MONGODATABASE: str = "fastapi"
-    MONGO_URL: str = ""
+    MONGO_URL: str = "mongodb+srv://x6txy:baha2710@cluster0.7ohnbpk.mongodb.net/"
 
 
 # environmental variables
@@ -25,7 +25,7 @@ fastapi_config: dict[str, Any] = {
     "title": "API",
 }
 
-mongo_url = "mongodb+srv://x6txy:baha2710@cluster0.7if4hvt.mongodb.net/"
+mongo_url = "mongodb+srv://x6txy:baha2710@cluster0.7ohnbpk.mongodb.net/"
 if env.MONGO_URL:
     mongo_url = env.MONGO_URL
 
