@@ -70,16 +70,33 @@ class Wtask2Repository:
         if self.vector_store is None:
             raise ValueError("Vector store is not loaded.")
         docs = self.vector_store.similarity_search(query=request, k=3)
-        llm = OpenAI(temperature=0.8)
+        llm = OpenAI(temperature=1)
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""Image you are IELTS writing task 2 examiner.Maximum score 9.0 and minimum score 0.0.Output only mark without feedback and other sentences.\nFamiliarize yourself with the marking criteria: Before you start using the IELTS writing checker, it s important to understand the criteria that the examiners use to mark your writing. This will help you understand what you need to focus on to improve your score.
-Practice writing regularly: To get the most out of the IELTS writing checker, it s important to practice writing regularly. This will help you improve your writing skills and give you more opportunities to use the checker.
-Analyze your mistakes: When the writing checker highlights your mistakes, take the time to analyze them and understand why you made them. This will help you avoid making the same mistakes in the future.
-Use the feedback to improve your writing: The IELTS writing checker provides feedback on your writing, so use it to your advantage. Take note of the areas where you need to improve and make the necessary changes to your writing.
-Work on your time management: During the IELTS exam, time management is crucial. To prepare for this, try to complete your writing tasks within the allotted time and use the writing checker to check your work quickly.
-Don t rely on the IELTS writing checker entirely: While the writing checker is a useful tool, it s important to remember that it s not perfect. Use it as a guide, but don t rely on it entirely. Always use your own judgement and common sense when it comes to your writing.Accurate mark of this essay:"""
+        evaluator_prompt = f"""
+
+        "Strict Essay Scoring Criteria for IELTS Evaluation"
+
+The essay must be scored on a scale of 0.0 to 9.0.
+If the essay response contains fewer than 100 words and 600 characters, the score should be 3.5.
+The evaluation should be based on the IELTS criteria, focusing on four main bands: Task Response, Coherence and Cohesion, Lexical Resource, and Grammar.
+Each band should be scored individually, with clear descriptions provided for each score point in Task Response, Coherence and Cohesion, Lexical Resource, and Grammar.
+The total score for the essay should be calculated as the average of the scores in Task Response, Coherence and Cohesion, Lexical Resource, and Grammar.
+The overall score should be rounded to the nearest 0.5.
+In case the essay contains fewer than 50 words, the score should be 0. For other word count ranges, specific scores should be assigned accordingly.
+The final score should be presented as a number within the range of 0.0 to 9.0, without any additional text or explanations.
+The essay should be evaluated strictly based on the provided criteria for each band, focusing on addressing the task, coherence and organization, vocabulary usage, and grammar accuracy.
+Any additional assessment or subjective comments should be avoided, and the evaluation should remain objective and accurate.
+Example of essay scoring:
+
+Task Response: 7.0
+Coherence and Cohesion: 6.5
+Lexical Resource: 7.5
+Grammar: 7.0
+Total score for the IELTS essay: (7.0 + 6.5 + 7.5 + 7.0) / 4 = 7.0
+output ONLY SCORE OF ESSAY DON'T WRITE ANYTHING ELSE
+        """
 
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=evaluator_prompt)
@@ -95,7 +112,7 @@ Don t rely on the IELTS writing checker entirely: While the writing checker is a
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.\n\n"""
+        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.Also output useful words for change repetion words ,check grammar mistakes, linking words \n\n"""
 
         with get_openai_callback() as cb:
             response = chain.run(input_documents=docs, question=evaluator_prompt)
