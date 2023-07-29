@@ -116,7 +116,9 @@ output ONLY SCORE OF ESSAY DON'T WRITE ANYTHING ELSE
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.Also output useful words for change repetion words ,check grammar mistakes, linking words. check essay for having punctuation and grammar mistakes.Also feedback and give an examples for task response, grammar, lexical resource also Coherence and Cohesion.In the end give useful vocabulary  \n\n"""
+        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.
+        Also output useful words for change repetion words ,check grammar mistakes, linking words. check essay for having punctuation and grammar mistakes.Also feedback and give an examples for task response, grammar, lexical resource also Coherence and Cohesion.
+        In the end give useful vocabulary and give an examples where we can use this words.highlight essay key words \n\n"""
 
         with get_openai_callback() as cb:
             response = chain.run(
