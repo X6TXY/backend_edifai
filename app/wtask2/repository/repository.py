@@ -69,15 +69,14 @@ class Wtask2Repository:
     def get_score(self, request: str):
         if self.vector_store is None:
             raise ValueError("Vector store is not loaded.")
-        docs = self.vector_store.similarity_search(query=request, k=3)
-        llm = OpenAI(temperature=1)
+        docs = self.vector_store.similarity_search(query=request, k=15)
+        llm = OpenAI(temperature=0.8)
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
         evaluator_prompt = f"""
-
+        firstly check number of words and punctuation,grammar mistakes.
         "Strict Essay Scoring Criteria for IELTS Evaluation"
-
 The essay must be scored on a scale of 0.0 to 9.0.
 If the essay response contains fewer than 100 words and 600 characters, the score should be 3.5.
 The evaluation should be based on the IELTS criteria, focusing on four main bands: Task Response, Coherence and Cohesion, Lexical Resource, and Grammar.
@@ -99,7 +98,12 @@ output ONLY SCORE OF ESSAY DON'T WRITE ANYTHING ELSE
         """
 
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=evaluator_prompt)
+            response = chain.run(
+                input_documents=docs,
+                question=evaluator_prompt,
+                model="gpt-3.5-turbo-16k",
+                temperature=0.8,
+            )
 
         return response
 
@@ -112,10 +116,14 @@ output ONLY SCORE OF ESSAY DON'T WRITE ANYTHING ELSE
         prompt_template = CustomPromptTemplate()
         chain = load_qa_chain(llm=llm, chain_type="stuff")
 
-        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.Also output useful words for change repetion words ,check grammar mistakes, linking words \n\n"""
+        evaluator_prompt = f"""Image You are IETLS examiner and you can only answer about IELTS.Be strict.Give feedback for each sections. Also give advices how i can improve this Essay.Don t give a overall score.And give advices which words i can use for improve essay sructure.This is Essay:{request}.Also output useful words for change repetion words ,check grammar mistakes, linking words. check essay for having punctuation and grammar mistakes.Also feedback and give an examples for task response, grammar, lexical resource also Coherence and Cohesion.In the end give useful vocabulary  \n\n"""
 
         with get_openai_callback() as cb:
-            response = chain.run(input_documents=docs, question=evaluator_prompt)
+            response = chain.run(
+                input_documents=docs,
+                question=evaluator_prompt,
+                model="gpt-3.5-turbo-16k",
+            )
         payload = {
             "user_id": self.user["_id"],
             "date": datetime.utcnow().strftime("%Y-%m-%d"),
