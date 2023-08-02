@@ -77,6 +77,26 @@ def get_dates(
         )
 
 
+@router.post("/get_score", response_model=GetScoreResponse)
+def get_score(
+    request: GetAnswerRequest,
+    jwt_data: JWTData = Depends(parse_jwt_user_data),
+    svc: Service = Depends(get_service),
+) -> dict[str, str]:
+    user = svc.repository.get_user_by_id(jwt_data.user_id)
+    try:
+        if not svc.repository.vector_store:
+            svc.repository.load_vector_store()
+        response = svc.repository.get_score(request.request)
+
+        return GetScoreResponse(response=response)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
 @router.get("/get_responses", response_model=List[ResponseData])
 def get_responses_by_user_id(
     jwt_data: JWTData = Depends(parse_jwt_user_data),
