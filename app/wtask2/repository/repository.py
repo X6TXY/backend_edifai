@@ -157,7 +157,7 @@ class Wtask2Repository:
             "request": request,
             "score": self.get_score(
                 request
-            ),  # Calculate the score and add it to the payload
+            ),
         }
         self.database["response"].insert_one(payload)
         return response
